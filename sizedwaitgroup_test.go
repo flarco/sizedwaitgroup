@@ -12,6 +12,11 @@ func TestWait(t *testing.T) {
 
 	for i := 0; i < 10000; i++ {
 		swg.Add()
+
+		if swg.GetQueueSize() == 0 {
+			t.Fatalf("%d, queue is zero.", i)
+		}
+
 		go func(c *uint32) {
 			defer swg.Done()
 			atomic.AddUint32(c, 1)
@@ -22,6 +27,10 @@ func TestWait(t *testing.T) {
 
 	if c != 10000 {
 		t.Fatalf("%d, not all routines have been executed.", c)
+	}
+
+	if swg.GetQueueSize() != 0 {
+		t.Fatalf("%d, queue is not zero.", swg.GetQueueSize())
 	}
 }
 

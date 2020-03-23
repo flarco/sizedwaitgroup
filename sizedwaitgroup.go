@@ -13,6 +13,7 @@ import (
 	"context"
 	"math"
 	"sync"
+	"sync/atomic"
 )
 
 // SizedWaitGroup has the same role and close to the
@@ -21,8 +22,9 @@ import (
 type SizedWaitGroup struct {
 	Size int
 
-	current chan struct{}
-	wg      sync.WaitGroup
+	queueSize int32
+	current   chan struct{}
+	wg        sync.WaitGroup
 }
 
 // New creates a SizedWaitGroup.
@@ -66,6 +68,7 @@ func (s *SizedWaitGroup) AddWithContext(ctx context.Context) error {
 	case s.current <- struct{}{}:
 		break
 	}
+	atomic.AddInt32(&s.queueSize, 1)
 	s.wg.Add(1)
 	return nil
 }
@@ -74,6 +77,7 @@ func (s *SizedWaitGroup) AddWithContext(ctx context.Context) error {
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Done() {
 	<-s.current
+	atomic.AddInt32(&s.queueSize, -1)
 	s.wg.Done()
 }
 
@@ -81,4 +85,10 @@ func (s *SizedWaitGroup) Done() {
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Wait() {
 	s.wg.Wait()
+}
+
+// GetQueueSize returns the number of items
+// currently in the waitgroup
+func (s *SizedWaitGroup) GetQueueSize() int32 {
+	return s.queueSize
 }
