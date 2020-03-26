@@ -87,9 +87,6 @@ func (s *SizedWaitGroup) Done() {
 // Wait blocks until the SizedWaitGroup counter is zero.
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Wait() {
-	if s.queueSize <= 0 {
-		println("SizedWaitGroup.queueSize is 0! Calling Wait() freezes")
-	}
 	s.wg.Wait()
 }
 
