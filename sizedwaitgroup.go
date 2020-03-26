@@ -76,6 +76,9 @@ func (s *SizedWaitGroup) AddWithContext(ctx context.Context) error {
 // Done decrements the SizedWaitGroup counter.
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Done() {
+	if s.queueSize <= 0 {
+		println("SizedWaitGroup.queueSize is 0! Calling Done() freezes")
+	}
 	<-s.current
 	atomic.AddInt32(&s.queueSize, -1)
 	s.wg.Done()
@@ -84,6 +87,9 @@ func (s *SizedWaitGroup) Done() {
 // Wait blocks until the SizedWaitGroup counter is zero.
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Wait() {
+	if s.queueSize <= 0 {
+		println("SizedWaitGroup.queueSize is 0! Calling Wait() freezes")
+	}
 	s.wg.Wait()
 }
 
