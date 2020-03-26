@@ -11,6 +11,7 @@ package sizedwaitgroup
 
 import (
 	"context"
+	"log"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -77,7 +78,7 @@ func (s *SizedWaitGroup) AddWithContext(ctx context.Context) error {
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Done() {
 	if s.queueSize <= 0 {
-		println("SizedWaitGroup.queueSize is 0! Calling Done() freezes")
+		log.Printf("SizedWaitGroup.queueSize is %d! Calling Done() freezes...\n", s.queueSize)
 	}
 	<-s.current
 	atomic.AddInt32(&s.queueSize, -1)
