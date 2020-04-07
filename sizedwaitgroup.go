@@ -13,6 +13,7 @@ import (
 	"context"
 	"log"
 	"math"
+	"os"
 	"sync"
 	"sync/atomic"
 )
@@ -63,6 +64,11 @@ func (s *SizedWaitGroup) Add() {
 //
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) AddWithContext(ctx context.Context) error {
+	if s.queueSize >= int32(s.Size) {
+		if os.Getenv("DEBUG") == "LOW" {
+			log.Printf("SizedWaitGroup: %d >= %d", s.queueSize, s.Size)
+		}
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -78,7 +84,9 @@ func (s *SizedWaitGroup) AddWithContext(ctx context.Context) error {
 // See sync.WaitGroup documentation for more information.
 func (s *SizedWaitGroup) Done() {
 	if s.queueSize <= 0 {
-		log.Printf("SizedWaitGroup.queueSize is %d! Calling Done() freezes...\n", s.queueSize)
+		if os.Getenv("DEBUG") == "LOW" {
+			log.Printf("SizedWaitGroup: queueSize is %d! Calling Done() freezes...\n", s.queueSize)
+		}
 	}
 	<-s.current
 	atomic.AddInt32(&s.queueSize, -1)
